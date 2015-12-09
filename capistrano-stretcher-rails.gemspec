@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["SHIBATA Hiroshi", "Uchio Kondo"]
   spec.email         = ["hsbt@ruby-lang.org", "udzura@udzura.jp"]
 
-  spec.summary       = %q{Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{Write a longer description or delete this line.}
+  spec.summary       = %q{rails specific tasks for capistrano-stretcher}
+  spec.description   = %q{rails specific tasks for capistrano-stretcher}
   spec.homepage      = "https://github.com/pepabo/capistrano-stretcher-rails"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
