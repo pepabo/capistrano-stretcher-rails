@@ -1,4 +1,4 @@
-# Original source about asset_precompile: https://github.com/capistrano-plugins/capistrano-faster-assets/blob/master/lib/capistrano/tasks/faster_assets.rake
+# Original source about assets precompile: https://github.com/capistrano-plugins/capistrano-faster-assets/blob/master/lib/capistrano/tasks/faster_assets.rake
 
 namespace :stretcher do
   set :exclude_dirs, fetch(:exclude_dirs) << "vendor/bundle" << "public/assets"
