@@ -13,41 +13,45 @@ namespace :stretcher do
 
   task :bundle do
     on application_builder_roles do
-      within local_build_path do
-        execute :bundle, :install, "--gemfile #{local_build_path}/Gemfile --deployment --path #{local_bundle_path} -j 4 --without development test"
+      with rbenv_version: fetch(:rbenv_version) do
+        within local_build_path do
+          execute :bundle, :install, "--gemfile #{local_build_path}/Gemfile --deployment --path #{local_bundle_path} -j 4 --without development test"
+        end
       end
     end
   end
 
   task :asset_precompile do
     on application_builder_roles do
-      within local_build_path do
-        with rails_env: fetch(:rails_env) do
-          begin
-            checkout_dirs = capture(:ls, '-xr', local_checkout_path)
-            latest_path = "#{local_checkout_path}/#{checkout_dirs.split[0]}"
-            previous_path = "#{local_checkout_path}/#{checkout_dirs.split[1]}"
+      with rbenv_version: fetch(:rbenv_version) do
+        within local_build_path do
+          with rails_env: fetch(:rails_env) do
+            begin
+              checkout_dirs = capture(:ls, '-xr', local_checkout_path)
+              latest_path = "#{local_checkout_path}/#{checkout_dirs.split[0]}"
+              previous_path = "#{local_checkout_path}/#{checkout_dirs.split[1]}"
 
-            raise PrecompileRequired unless previous_path
+              raise PrecompileRequired unless previous_path
 
-            execute :ls, "#{previous_path}/public/assets" rescue raise PrecompileRequired
+              execute :ls, "#{previous_path}/public/assets" rescue raise PrecompileRequired
 
-            fetch(:assets_dependencies).each do |dep|
-              latest = "#{latest_path}/#{dep}"
-              previous = "#{previous_path}/#{dep}"
-              next if [latest, previous].map{|d| test "[ -e #{d} ]"}.uniq == [false]
+              fetch(:assets_dependencies).each do |dep|
+                latest = "#{latest_path}/#{dep}"
+                previous = "#{previous_path}/#{dep}"
+                next if [latest, previous].map{|d| test "[ -e #{d} ]"}.uniq == [false]
 
-              execute :diff, '-Nqr', latest, previous rescue raise PrecompileRequired
+                execute :diff, '-Nqr', latest, previous rescue raise PrecompileRequired
+              end
+
+              info('Skipping asset precompile, no asset diff found')
+
+              execute :cp, '-r', "#{previous_path}/public/assets", "#{latest_path}/public/"
+
+            rescue PrecompileRequired
+              execute :rm, '-rf', 'public/assets'
+              execute :bundle, :exec, :rake, 'assets:precompile'
+              execute :cp, '-r', 'public/assets', "#{latest_path}/public/"
             end
-
-            info('Skipping asset precompile, no asset diff found')
-
-            execute :cp, '-r', "#{previous_path}/public/assets", "#{latest_path}/public/"
-
-          rescue PrecompileRequired
-            execute :rm, '-rf', 'public/assets'
-            execute :bundle, :exec, :rake, 'assets:precompile'
-            execute :cp, '-r', 'public/assets', "#{latest_path}/public/"
           end
         end
       end
